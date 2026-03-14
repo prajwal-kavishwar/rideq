@@ -1,50 +1,69 @@
 package com.prajwal.rideq.entity;
 
-
 import com.prajwal.rideq.entity.enums.DriverStatus;
+import com.prajwal.rideq.entity.enums.Role;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.UUID;
 
-
 @Getter
 @NoArgsConstructor
-@Document(collection="drivers")
+@Entity
+@Table(name = "drivers")
 public class Driver {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Setter
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
-
     @Setter
+    @Column(name="full_name",nullable = false,length = 100)
     private String name;
 
     @Setter
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String phoneNumber;
 
     @Setter
+    @Column(length = 100,nullable = false)
     private String password;
+    @Setter
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 
     @Setter
+    @Column(unique = true, nullable = false)
     private String vehicleNumber;
 
-    @Indexed
     @Setter
+    @Enumerated(EnumType.STRING)
     private DriverStatus status;
 
-    @Setter
+    @Column(nullable = false)
     private boolean active;
 
-    @Setter
+    @Column(nullable = false,updatable = false)
     private Instant createdAt;
 
+    private Instant updatedAt;
+
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = Instant.now();
+        this.active = true;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = Instant.now();
+    }
 }

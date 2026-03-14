@@ -36,7 +36,7 @@ public class User {
     @Column(length = 100,nullable = false)
     private String password;
 
-
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

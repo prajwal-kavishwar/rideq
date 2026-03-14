@@ -1,28 +1,21 @@
 package com.prajwal.rideq.dto;
 
-
 import com.prajwal.rideq.entity.enums.Role;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.util.UUID;
 
-@Setter
 @Getter
-public class UserResponse {
+@Setter
+@AllArgsConstructor
+public class LoginResponse {
     private UUID id;
-
-    private String name;
-
     private String email;
-
-    private String phoneNumber;
-
     private Role role;
+    private String token;
 
-    private boolean active;
 
-    private Instant createdAt;
-    
+
 }

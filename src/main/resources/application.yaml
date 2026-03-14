@@ -1,3 +1,14 @@
+server:
+  port: 9090
 spring:
-  application:
-    name: rideq
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/rideq
+    username: rideq_user
+    password: StrongPassword123!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
