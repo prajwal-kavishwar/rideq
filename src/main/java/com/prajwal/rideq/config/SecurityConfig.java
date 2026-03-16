@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/drivers").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/trips").permitAll()
 
                         .anyRequest().authenticated()
                 )
