@@ -3,12 +3,14 @@ package com.prajwal.rideq.service;
 import com.prajwal.rideq.dto.DriverResponse;
 import com.prajwal.rideq.dto.RegisterDriverRequest;
 import com.prajwal.rideq.entity.Driver;
+import com.prajwal.rideq.entity.Location;
 import com.prajwal.rideq.entity.enums.DriverStatus;
 import com.prajwal.rideq.entity.enums.Role;
 import com.prajwal.rideq.exception.DuplicateResourceException;
 import com.prajwal.rideq.exception.ResourceNotFoundException;
 import com.prajwal.rideq.mapper.DriverMapper;
 import com.prajwal.rideq.repository.DriverRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -58,4 +60,19 @@ public class DriverService {
 
         return DriverMapper.toResponse(driver);
     }
+
+    public DriverResponse setLocation(Authentication authentication,Location location){
+        Driver driver=driverRepository.findByEmail(authentication.getName())
+                .orElseThrow(()->new ResourceNotFoundException("Driver not found"));
+        Location newLocation = new Location(
+                location.getLatitude(),
+                location.getLongitude()
+        );
+
+        driver.setCurrentLocation(newLocation);
+        driverRepository.save(driver);
+        return DriverMapper.toResponse(driver);
+
+    }
+
 }

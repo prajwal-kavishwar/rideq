@@ -7,14 +7,21 @@ import com.prajwal.rideq.entity.Driver;
 import com.prajwal.rideq.entity.Trip;
 
 import com.prajwal.rideq.entity.User;
+import com.prajwal.rideq.entity.enums.DriverStatus;
 import com.prajwal.rideq.entity.enums.TripStatus;
 import com.prajwal.rideq.exception.ResourceNotFoundException;
+import com.prajwal.rideq.mapper.TripMapper;
 import com.prajwal.rideq.repository.DriverRepository;
 import com.prajwal.rideq.repository.TripRepository;
 import com.prajwal.rideq.repository.UserRepository;
+import com.prajwal.rideq.util.DistanceUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -43,19 +50,13 @@ public class TripService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         trip.setUserId(user.getId());
+        setFareAndDistance(trip);
+        trip.setStatus(TripStatus.CREATED);
+
 
         Trip savedTrip = tripRepository.save(trip);
-        TripResponse response=new TripResponse();
-        response.setId(savedTrip.getTripId());
-        response.setUserId(savedTrip.getUserId());
-        response.setDriverId(savedTrip.getDriverId());
-        response.setStatus(savedTrip.getStatus());
-        response.setPickUpLocation(savedTrip.getPickupLocation());
-        response.setDropLocation((savedTrip.getDropLocation()));
-        response.setDistance(savedTrip.getDistance());
-        response.setFare(savedTrip.getFare());
 
-        return response;
+        return TripMapper.toResponse(savedTrip);
 
 
     }
@@ -76,16 +77,203 @@ public class TripService {
 
         Trip savedTrip = tripRepository.save(trip);
 
-        TripResponse response = new TripResponse();
-        response.setId(savedTrip.getTripId());
-        response.setUserId(savedTrip.getUserId());
-        response.setDriverId(savedTrip.getDriverId());
-        response.setStatus(savedTrip.getStatus());
-        response.setPickUpLocation(savedTrip.getPickupLocation());
-        response.setDropLocation(savedTrip.getDropLocation());
-        response.setDistance(savedTrip.getDistance());
-        response.setFare(savedTrip.getFare());
+        return TripMapper.toResponse(savedTrip);
 
-        return response;
+
     }
+    public TripResponse acceptTrip(UUID tripId, String driverEmail){
+        Trip trip=tripRepository.findByTripId(tripId)
+                .orElseThrow(()-> new ResourceNotFoundException("Trip does not exist"));
+        Driver driver=driverRepository.findByEmail(driverEmail)
+                .orElseThrow(()->new ResourceNotFoundException("Driver does not exist with email "+driverEmail));
+        if(!trip.getStatus().equals(TripStatus.ASSIGNED)){
+            throw new IllegalStateException("Trip cannot be accepted at current state");
+        }
+        if(!trip.getDriverId().equals(driver.getId())){
+            throw new IllegalStateException("Driver not assigned on these trip");
+        }
+        trip.setStatus(TripStatus.ACCEPTED);
+        driver.setStatus(DriverStatus.ON_TRIP);
+        tripRepository.save(trip);
+        driverRepository.save(driver);
+        return TripMapper.toResponse(trip);
+
+
+    }
+    public TripResponse startTrip(UUID tripId,String driverEmail){
+        Trip trip=tripRepository.findByTripId(tripId)
+                .orElseThrow(()->new ResourceNotFoundException("Trip does not exist"));
+        Driver driver=driverRepository.findByEmail(driverEmail)
+                .orElseThrow(()->new ResourceNotFoundException("Cannot find Driver"));
+        if(!trip.getStatus().equals(TripStatus.ACCEPTED)){
+            throw new IllegalStateException("Trip cannot be started at current state");
+        }
+        if(!trip.getDriverId().equals(driver.getId())){
+            throw new IllegalStateException("driver cannot a start these trip");
+        }
+        trip.setStatus(TripStatus.STARTED);
+        tripRepository.save(trip);
+        return TripMapper.toResponse(trip);
+    }
+    public TripResponse completeTrip(UUID tripId,String driverEmail){
+        Trip trip=tripRepository.findByTripId(tripId)
+                .orElseThrow(()->new ResourceNotFoundException("Trip does not exist"));
+        Driver driver=driverRepository.findByEmail(driverEmail)
+                .orElseThrow(()->new ResourceNotFoundException("Cannot find Driver"));
+        if(!trip.getStatus().equals(TripStatus.STARTED)){
+            throw new IllegalStateException("Trip cannot be completed at current state");
+        }
+        if(!trip.getDriverId().equals(driver.getId())){
+            throw new IllegalStateException("driver cannot complete these trip");
+        }
+        trip.setStatus(TripStatus.COMPLETED);
+        driver.setStatus(DriverStatus.AVAILABLE);
+
+        tripRepository.save(trip);
+        driverRepository.save(driver);
+
+        return TripMapper.toResponse(trip);
+    }
+    public TripResponse getTripDetail(UUID tripId) {
+
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new IllegalStateException("Trip not found"));
+
+        return TripMapper.toResponse(trip);
+    }
+
+    public TripResponse cancelTrip(UUID tripId, String email){
+        Trip trip=tripRepository.findByTripId(tripId)
+                .orElseThrow(()->new ResourceNotFoundException("Trip does not exist"));
+        User user = userRepository.findByEmail(email).orElse(null);
+        Driver driver = driverRepository.findByEmail(email).orElse(null);
+
+        if(user == null && driver == null){
+            throw new ResourceNotFoundException("Invalid user/driver");
+        }
+        if(user != null && !trip.getUserId().equals(user.getId())){
+            throw new IllegalStateException("User not authorized to cancel this trip");
+        }
+        if (driver!=null && trip.getDriverId() != null && !trip.getDriverId().equals(driver.getId())){
+            throw new IllegalStateException("Driver not assigned on these trip");
+        }
+        if (trip.getStatus()==TripStatus.STARTED ||
+            trip.getStatus()==TripStatus.COMPLETED){
+            throw new IllegalStateException("Trip cannot be cancelled at these stage");
+        }
+        trip.setStatus(TripStatus.CANCELED);
+        if(trip.getDriverId() != null){
+            Driver assignedDriver = driverRepository.findById(trip.getDriverId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Driver not found"));
+
+            assignedDriver.setStatus(DriverStatus.AVAILABLE);
+            driverRepository.save(assignedDriver);
+        }
+        tripRepository.save(trip);
+        return TripMapper.toResponse(trip);
+
+
+    }
+
+//    public List<TripResponse> getUserTrips(Authentication authentication){
+//
+//        User user=userRepository.findByEmail(authentication.getName())
+//                .orElseThrow(()->new ResourceNotFoundException("User not found"));
+//        List<Trip> trips=tripRepository.findByUserId(user.getId());
+//
+//        return trips.stream()
+//                .map(TripMapper::toResponse)
+//                .toList();
+//    }
+    public Page<TripResponse> getUserTrips(Authentication authentication, int page, int size){
+        User user=userRepository.findByEmail(authentication.getName())
+                .orElseThrow(()->new ResourceNotFoundException("User not found"));
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Trip> tripPage = tripRepository.findByUserId(user.getId(), pageable);
+        return tripPage.map(TripMapper::toResponse);
+    }
+
+//    public List<TripResponse> getDriverTrips(Authentication authentication){
+//
+//        Driver driver = driverRepository.findByEmail(authentication.getName())
+//                .orElseThrow(() -> new ResourceNotFoundException("Driver not found"));
+//
+//        List<Trip> trips = tripRepository.findByDriverId(driver.getId());
+//
+//        return trips.stream()
+//                .map(TripMapper::toResponse)
+//                .toList();
+//    }
+
+    public Page<TripResponse> getDriverTrips(Authentication authentication,int page, int size){
+        Driver driver =driverRepository.findByEmail(authentication.getName())
+                .orElseThrow(()->new ResourceNotFoundException("Driver not found"));
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Trip> tripPage = tripRepository.findByDriverId(driver.getId(), pageable);
+        return tripPage.map(TripMapper::toResponse);
+
+    }
+    private void setFareAndDistance(Trip trip){
+
+        Double dist= DistanceUtil.calculateDistance(trip.getPickupLocation(),trip.getDropLocation());
+        Double fare=30 +(10*dist);//base fare + rate perkm*dist
+
+        trip.setDistance(dist);
+        trip.setFare(fare);
+
+
+
+
+    }
+
+    private Driver findNearestDriver(Trip trip){
+        List<Driver> drivers=driverRepository.findByStatus(DriverStatus.AVAILABLE);
+
+        Driver nearestDriver=null;
+        double minDistance = Double.MAX_VALUE;;
+
+        for(Driver driver : drivers){
+            if(driver.getCurrentLocation()==null)continue;
+            double distance = DistanceUtil.calculateDistance(
+                    driver.getCurrentLocation(),
+                    trip.getPickupLocation()
+            );
+            if(distance<minDistance){
+                minDistance=distance;
+                nearestDriver=driver;
+            }
+
+        }
+        return nearestDriver;
+
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

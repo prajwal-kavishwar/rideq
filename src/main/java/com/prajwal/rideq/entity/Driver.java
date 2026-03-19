@@ -50,6 +50,14 @@ public class Driver {
     @Column(nullable = false)
     private boolean active;
 
+    @Embedded
+    @Setter
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "longitude"))
+    })
+    private Location currentLocation;
+
     @Column(nullable = false,updatable = false)
     private Instant createdAt;
 
@@ -60,6 +68,7 @@ public class Driver {
     public void prePersist() {
         this.createdAt = Instant.now();
         this.active = true;
+        this.status=DriverStatus.OFFLINE;
     }
 
     @PreUpdate
