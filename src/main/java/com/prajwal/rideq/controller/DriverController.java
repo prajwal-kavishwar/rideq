@@ -3,7 +3,9 @@ package com.prajwal.rideq.controller;
 
 import com.prajwal.rideq.dto.DriverResponse;
 import com.prajwal.rideq.dto.RegisterDriverRequest;
+import com.prajwal.rideq.dto.TripResponse;
 import com.prajwal.rideq.service.DriverService;
+import com.prajwal.rideq.service.TripService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +19,11 @@ import java.util.UUID;
 public class DriverController {
     private DriverService driverService;
 
-    public DriverController(DriverService driverService){
+    public DriverController(DriverService driverService, TripService tripService){
         this.driverService=driverService;
+        this.tripService = tripService;
     }
+    public final TripService tripService;
 
     @PostMapping
     public ResponseEntity<DriverResponse> register(@Valid@RequestBody RegisterDriverRequest request){
@@ -52,5 +56,21 @@ public class DriverController {
         DriverResponse response = driverService.getDriverByEmail(email);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/trip/{tripId}/accept")
+    public TripResponse acceptTrip(@PathVariable UUID tripId,
+                                   Authentication authentication) {
+
+        return tripService.acceptTrip(tripId, authentication.getName());
+    }
+
+    @PostMapping("/trip/{tripId}/reject")
+    public void rejectTrip(@PathVariable UUID tripId,
+                           Authentication authentication) {
+
+        tripService.rejectTrip(tripId, authentication.getName());
+    }
+
+
 
 }

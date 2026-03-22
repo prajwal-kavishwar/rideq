@@ -7,6 +7,9 @@ import lombok.Setter;
 
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 //
@@ -26,6 +29,9 @@ public class Trip {
     @Setter
     @Column(nullable = false)
     private UUID userId;
+
+    @ElementCollection
+    private Set<UUID> triedDriverIds = new HashSet<>();
     @Getter
     @Setter
     private UUID driverId;
@@ -60,6 +66,10 @@ public class Trip {
     private Double fare;
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    @Getter
+    @Setter
+    List<UUID> TriedDriverIds;
 
     private Instant updatedAt;
 

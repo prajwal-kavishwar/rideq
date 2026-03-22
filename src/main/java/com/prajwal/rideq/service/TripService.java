@@ -9,12 +9,15 @@ import com.prajwal.rideq.entity.Trip;
 import com.prajwal.rideq.entity.User;
 import com.prajwal.rideq.entity.enums.DriverStatus;
 import com.prajwal.rideq.entity.enums.TripStatus;
+import com.prajwal.rideq.event.TripCreatedEvent;
 import com.prajwal.rideq.exception.ResourceNotFoundException;
 import com.prajwal.rideq.mapper.TripMapper;
 import com.prajwal.rideq.repository.DriverRepository;
 import com.prajwal.rideq.repository.TripRepository;
 import com.prajwal.rideq.repository.UserRepository;
 import com.prajwal.rideq.util.DistanceUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,9 +29,15 @@ import java.util.UUID;
 
 @Service
 public class TripService {
+
+
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final DriverRepository driverRepository;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+    
 
     public TripService(TripRepository tripRepository, UserRepository userRepository, DriverRepository driverRepository) {
         this.tripRepository = tripRepository;
@@ -55,6 +64,8 @@ public class TripService {
 
 
         Trip savedTrip = tripRepository.save(trip);
+
+        eventPublisher.publishEvent(new TripCreatedEvent(savedTrip.getTripId()));
 
         return TripMapper.toResponse(savedTrip);
 
@@ -175,16 +186,7 @@ public class TripService {
 
     }
 
-//    public List<TripResponse> getUserTrips(Authentication authentication){
-//
-//        User user=userRepository.findByEmail(authentication.getName())
-//                .orElseThrow(()->new ResourceNotFoundException("User not found"));
-//        List<Trip> trips=tripRepository.findByUserId(user.getId());
-//
-//        return trips.stream()
-//                .map(TripMapper::toResponse)
-//                .toList();
-//    }
+
     public Page<TripResponse> getUserTrips(Authentication authentication, int page, int size){
         User user=userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new ResourceNotFoundException("User not found"));
@@ -193,17 +195,7 @@ public class TripService {
         return tripPage.map(TripMapper::toResponse);
     }
 
-//    public List<TripResponse> getDriverTrips(Authentication authentication){
-//
-//        Driver driver = driverRepository.findByEmail(authentication.getName())
-//                .orElseThrow(() -> new ResourceNotFoundException("Driver not found"));
-//
-//        List<Trip> trips = tripRepository.findByDriverId(driver.getId());
-//
-//        return trips.stream()
-//                .map(TripMapper::toResponse)
-//                .toList();
-//    }
+
 
     public Page<TripResponse> getDriverTrips(Authentication authentication,int page, int size){
         Driver driver =driverRepository.findByEmail(authentication.getName())
@@ -247,6 +239,101 @@ public class TripService {
         return nearestDriver;
 
     }
+
+    public void assignNextDriver(UUID tripId){
+
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("Trip does not exist"));
+
+        if (trip.getStatus() != TripStatus.ASSIGNED &&
+                trip.getStatus() != TripStatus.CREATED) {
+            return;
+        }
+
+        List<Driver> drivers = driverRepository.findByStatus(DriverStatus.AVAILABLE);
+
+        Driver selectedDriver = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (Driver driver : drivers) {
+
+            if (trip.getTriedDriverIds().contains(driver.getId())) continue;
+            if (driver.getCurrentLocation() == null) continue;
+
+            double distance = DistanceUtil.calculateDistance(
+                    driver.getCurrentLocation(),
+                    trip.getPickupLocation()
+            );
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                selectedDriver = driver;
+            }
+        }
+
+        if (selectedDriver == null) {
+            trip.setStatus(TripStatus.CANCELED);
+            tripRepository.save(trip);
+            return;
+        }
+
+        if (selectedDriver.getStatus() != DriverStatus.AVAILABLE) {
+            assignNextDriver(tripId);
+            return;
+        }
+
+        trip.setDriverId(selectedDriver.getId());
+        trip.setStatus(TripStatus.ASSIGNED);
+        trip.getTriedDriverIds().add(selectedDriver.getId());
+
+        selectedDriver.setStatus(DriverStatus.BUSY);
+
+        tripRepository.save(trip);
+        driverRepository.save(selectedDriver);
+    }
+
+
+
+    public void rejectTrip(UUID tripId, String driverEmail) {
+
+        Trip trip = tripRepository.findByTripId(tripId)
+                .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
+
+        Driver driver = driverRepository.findByEmail(driverEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver not found"));
+
+        if (!trip.getDriverId().equals(driver.getId())) {
+            throw new IllegalStateException("Driver not assigned");
+        }
+
+        // reset driver
+        driver.setStatus(DriverStatus.AVAILABLE);
+        driverRepository.save(driver);
+
+        // remove driver
+        trip.setDriverId(null);
+        tripRepository.save(trip);
+
+        // retry
+        assignNextDriver(tripId);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 
