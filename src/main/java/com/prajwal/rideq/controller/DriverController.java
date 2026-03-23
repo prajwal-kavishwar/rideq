@@ -4,6 +4,12 @@ package com.prajwal.rideq.controller;
 import com.prajwal.rideq.dto.DriverResponse;
 import com.prajwal.rideq.dto.RegisterDriverRequest;
 import com.prajwal.rideq.dto.TripResponse;
+import com.prajwal.rideq.entity.Driver;
+import com.prajwal.rideq.entity.Location;
+import com.prajwal.rideq.entity.enums.DriverStatus;
+import com.prajwal.rideq.exception.ResourceNotFoundException;
+import com.prajwal.rideq.mapper.DriverMapper;
+import com.prajwal.rideq.repository.DriverRepository;
 import com.prajwal.rideq.service.DriverService;
 import com.prajwal.rideq.service.TripService;
 import jakarta.validation.Valid;
@@ -18,10 +24,12 @@ import java.util.UUID;
 @RestController
 public class DriverController {
     private DriverService driverService;
+    private DriverRepository driverRepository;
 
-    public DriverController(DriverService driverService, TripService tripService){
+    public DriverController(DriverService driverService, TripService tripService,DriverRepository driverRepository){
         this.driverService=driverService;
         this.tripService = tripService;
+        this.driverRepository=driverRepository;
     }
     public final TripService tripService;
 
@@ -70,6 +78,25 @@ public class DriverController {
 
         tripService.rejectTrip(tripId, authentication.getName());
     }
+    @PostMapping("/location")
+    public ResponseEntity<DriverResponse> setLocation(
+            @RequestBody Location location,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(driverService.setLocation(authentication, location));
+    }
+
+    @PostMapping("/online")
+    public ResponseEntity<DriverResponse> goOnline(
+            Authentication authentication
+    ) {
+        Driver driver=driverRepository.findByEmail(authentication.getName())
+                .orElseThrow(()-> new ResourceNotFoundException("Driver not found"));
+        driver.setStatus(DriverStatus.AVAILABLE);
+        driverRepository.save(driver);
+        return ResponseEntity.ok(DriverMapper.toResponse(driver));
+    }
+
 
 
 

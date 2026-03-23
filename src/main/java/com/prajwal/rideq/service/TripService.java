@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -245,6 +246,9 @@ public class TripService {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trip does not exist"));
 
+        if (trip.getTriedDriverIds() == null) {
+            trip.setTriedDriverIds(new ArrayList<>());
+        }
         if (trip.getStatus() != TripStatus.ASSIGNED &&
                 trip.getStatus() != TripStatus.CREATED) {
             return;

@@ -19,7 +19,8 @@ public class TripEventListener {
 
     @Async
     @EventListener
-    public void handelTripCreated(TripCreatedEvent event){
+    public void handleTripCreated(TripCreatedEvent event) {
+        System.out.println("EVENT RECEIVED: " + event.getTripId());
         tripService.assignNextDriver(event.getTripId());
     }
 
