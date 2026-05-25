@@ -66,7 +66,7 @@ public class TripService {
 
         Trip savedTrip = tripRepository.save(trip);
 
-        eventPublisher.publishEvent(new TripCreatedEvent(savedTrip.getTripId()));
+        //eventPublisher.publishEvent(new TripCreatedEvent(savedTrip.getTripId()));
 
         return TripMapper.toResponse(savedTrip);
 
@@ -94,24 +94,43 @@ public class TripService {
 
     }
     public TripResponse acceptTrip(UUID tripId, String driverEmail){
-        Trip trip=tripRepository.findByTripId(tripId)
-                .orElseThrow(()-> new ResourceNotFoundException("Trip does not exist"));
-        Driver driver=driverRepository.findByEmail(driverEmail)
-                .orElseThrow(()->new ResourceNotFoundException("Driver does not exist with email "+driverEmail));
-        if(!trip.getStatus().equals(TripStatus.ASSIGNED)){
-            throw new IllegalStateException("Trip cannot be accepted at current state");
+
+        Trip trip = tripRepository.findByTripId(tripId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Trip does not exist"));
+
+        Driver driver = driverRepository.findByEmail(driverEmail)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Driver does not exist with email " + driverEmail
+                        ));
+
+        if (!trip.getStatus().equals(TripStatus.CREATED)) {
+
+            throw new IllegalStateException(
+                    "Trip cannot be accepted at current state"
+            );
         }
-        if(!trip.getDriverId().equals(driver.getId())){
-            throw new IllegalStateException("Driver not assigned on these trip");
-        }
+
+        // ASSIGN DRIVER HERE
+        trip.setDriverId(driver.getId());
+
+        // UPDATE STATUS
         trip.setStatus(TripStatus.ACCEPTED);
+
+        // DRIVER STATUS
         driver.setStatus(DriverStatus.ON_TRIP);
+
+        // SAVE BOTH
         tripRepository.save(trip);
+
         driverRepository.save(driver);
+
         return TripMapper.toResponse(trip);
-
-
     }
+
+
+
     public TripResponse startTrip(UUID tripId,String driverEmail){
         Trip trip=tripRepository.findByTripId(tripId)
                 .orElseThrow(()->new ResourceNotFoundException("Trip does not exist"));
@@ -301,25 +320,24 @@ public class TripService {
     public void rejectTrip(UUID tripId, String driverEmail) {
 
         Trip trip = tripRepository.findByTripId(tripId)
-                .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Trip not found"));
 
         Driver driver = driverRepository.findByEmail(driverEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Driver not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Driver not found"));
 
-        if (!trip.getDriverId().equals(driver.getId())) {
-            throw new IllegalStateException("Driver not assigned");
-        }
-
-        // reset driver
+        // RESET DRIVER STATUS
         driver.setStatus(DriverStatus.AVAILABLE);
+
         driverRepository.save(driver);
 
-        // remove driver
+        // RESET TRIP
         trip.setDriverId(null);
-        tripRepository.save(trip);
 
-        // retry
-        assignNextDriver(tripId);
+        trip.setStatus(TripStatus.CREATED);
+
+        tripRepository.save(trip);
     }
 
 

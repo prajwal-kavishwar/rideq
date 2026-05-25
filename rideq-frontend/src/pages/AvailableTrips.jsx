@@ -36,7 +36,8 @@ function AvailableTrips() {
 
         try {
 
-            const token = localStorage.getItem("token");
+            const token =
+                localStorage.getItem("token");
 
             await api.post(
                 `/api/drivers/trip/${tripId}/accept`,
@@ -48,11 +49,15 @@ function AvailableTrips() {
                 }
             );
 
-            fetchTrips();
+            await fetchTrips();
+
+            alert("Trip accepted");
 
         } catch (error) {
 
             console.log(error);
+
+            alert("Accept failed");
         }
     }
 
@@ -60,7 +65,8 @@ function AvailableTrips() {
 
         try {
 
-            const token = localStorage.getItem("token");
+            const token =
+                localStorage.getItem("token");
 
             await api.post(
                 `/api/drivers/trip/${tripId}/reject`,
@@ -72,13 +78,23 @@ function AvailableTrips() {
                 }
             );
 
-            fetchTrips();
+            setTrips(
+                trips.filter(
+                    (trip) => trip.tripId !== tripId
+                )
+            );
+
+            alert("Trip rejected");
 
         } catch (error) {
 
             console.log(error);
+
+            alert("Reject failed");
         }
     }
+
+
 
     return (
 

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState } from "react";
 
 import {
     MapContainer,
@@ -27,7 +27,7 @@ function LocationSelector({
 
                 setPickupLocation(clickedLocation);
 
-            } else {
+            } else if (!dropLocation) {
 
                 setDropLocation(clickedLocation);
             }
@@ -44,7 +44,19 @@ function MapView({
                      setDropLocation
                  }) {
 
-    useEffect(() => {
+    const [loadingLocation, setLoadingLocation] =
+        useState(false);
+
+    function chooseCurrentLocation() {
+
+        if (!navigator.geolocation) {
+
+            alert("Geolocation not supported");
+
+            return;
+        }
+
+        setLoadingLocation(true);
 
         navigator.geolocation.getCurrentPosition(
 
@@ -55,61 +67,89 @@ function MapView({
                     longitude: position.coords.longitude
                 };
 
-                if (!pickupLocation) {
-                    setPickupLocation(currentLocation);
-                }
+                setPickupLocation(currentLocation);
+
+                setLoadingLocation(false);
             },
 
-            (error) => {
-                console.log(error);
+            () => {
+
+                alert("Location permission denied");
+
+                setLoadingLocation(false);
+            },
+
+            {
+                enableHighAccuracy: true,
+                timeout: 10000
             }
-
         );
-
-    }, []);
+    }
 
     return (
 
-        <MapContainer
-            center={
-                pickupLocation
-                    ? [pickupLocation.latitude, pickupLocation.longitude]
-                    : [23.2599, 77.4126]
-            }
-            zoom={13}
-            style={{ height: "500px", width: "100%" }}
-        >
+        <div className="relative">
 
-            <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            <button
+                onClick={chooseCurrentLocation}
+                disabled={loadingLocation}
+                className="absolute z-[1000] top-4 right-4 bg-black text-white px-5 py-3 rounded-2xl shadow-lg min-w-[220px]"
+            >
 
-            <LocationSelector
-                pickupLocation={pickupLocation}
-                setPickupLocation={setPickupLocation}
-                dropLocation={dropLocation}
-                setDropLocation={setDropLocation}
-            />
+                {
+                    loadingLocation
+                        ? "Getting Location..."
+                        : "Use Current Location"
+                }
 
-            {pickupLocation && (
-                <Marker
-                    position={[
-                        pickupLocation.latitude,
-                        pickupLocation.longitude
-                    ]}
+            </button>
+
+            <MapContainer
+                center={[23.2599, 77.4126]}
+                zoom={13}
+                style={{
+                    height: "600px",
+                    width: "100%"
+                }}
+            >
+
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-            )}
 
-            {dropLocation && (
-                <Marker
-                    position={[
-                        dropLocation.latitude,
-                        dropLocation.longitude
-                    ]}
+                <LocationSelector
+                    pickupLocation={pickupLocation}
+                    setPickupLocation={setPickupLocation}
+                    dropLocation={dropLocation}
+                    setDropLocation={setDropLocation}
                 />
-            )}
 
-        </MapContainer>
+                {pickupLocation && (
+
+                    <Marker
+                        position={[
+                            pickupLocation.latitude,
+                            pickupLocation.longitude
+                        ]}
+                    />
+
+                )}
+
+                {dropLocation && (
+
+                    <Marker
+                        position={[
+                            dropLocation.latitude,
+                            dropLocation.longitude
+                        ]}
+                    />
+
+                )}
+
+            </MapContainer>
+
+        </div>
     );
 }
+
 export default MapView;
