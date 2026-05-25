@@ -23,8 +23,8 @@ import java.util.UUID;
 @RequestMapping("/api/drivers")
 @RestController
 public class DriverController {
-    private DriverService driverService;
-    private DriverRepository driverRepository;
+    private final DriverService driverService;
+    private final DriverRepository driverRepository;
 
     public DriverController(DriverService driverService, TripService tripService,DriverRepository driverRepository){
         this.driverService=driverService;

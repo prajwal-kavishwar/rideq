@@ -2,6 +2,7 @@ package com.prajwal.rideq.repository;
 
 import com.prajwal.rideq.dto.TripResponse;
 import com.prajwal.rideq.entity.Trip;
+import com.prajwal.rideq.entity.enums.TripStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,6 @@ public interface TripRepository extends JpaRepository<Trip,UUID> {
 
     Page<Trip> findByUserId(UUID userId, Pageable pageable);
     Page<Trip> findByDriverId(UUID driverId,Pageable pageable);
+
+    Page<Trip> findByStatus(TripStatus status, Pageable pageable);
 }

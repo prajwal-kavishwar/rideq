@@ -36,10 +36,10 @@ public class AuthService {
     public LoginResponse login(LoginRequest request){
 
 
-        Optional<User> userOptioanl=userRepository.findByEmail(request.getEmail());
+        Optional<User> userOptional=userRepository.findByEmail(request.getEmail());
 
-        if(userOptioanl.isPresent()){
-            User user=userOptioanl.get();
+        if(userOptional.isPresent()){
+            User user=userOptional.get();
             if(!passwordEncoder.matches(request.getPassword(),user.getPassword())){
                 throw new RuntimeException("Invalid email or password");
             }

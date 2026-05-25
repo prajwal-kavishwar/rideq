@@ -323,6 +323,17 @@ public class TripService {
     }
 
 
+    public Page<TripResponse> getAvailableTrips(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Trip> tripPage =
+                tripRepository.findByStatus(TripStatus.CREATED, pageable);
+
+        return tripPage.map(TripMapper::toResponse);
+    }
+
+
 
 
 

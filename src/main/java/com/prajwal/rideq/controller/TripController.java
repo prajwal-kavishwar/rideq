@@ -101,4 +101,12 @@ public class TripController {
         return tripService.getDriverTrips(authentication,page,size);
     }
 
+    @GetMapping("/available")
+    public Page<TripResponse> getAvailableTrips(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return tripService.getAvailableTrips(page, size);
+    }
+
 }
