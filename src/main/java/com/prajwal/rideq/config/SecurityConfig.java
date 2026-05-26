@@ -63,7 +63,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @@Bean
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
@@ -87,5 +87,4 @@ public class SecurityConfig {
 
         return source;
     }
-
 }
