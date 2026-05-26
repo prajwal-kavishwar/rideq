@@ -52,18 +52,18 @@ function Login() {
 
                 <input
                     type="email"
-                    placeholder="Enter email"
+                    placeholder="user@rideq.com / driver@rideq.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border border-gray-300 p-4 rounded-2xl mb-4 outline-none focus:border-black"
+                    className="w-full border border-gray-300 p-4 rounded-2xl mb-4 outline-none focus:border-black placeholder:text-gray-400"
                 />
 
                 <input
                     type="password"
-                    placeholder="Enter password"
+                    placeholder="user123 / driver123"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border border-gray-300 p-4 rounded-2xl mb-6 outline-none focus:border-black"
+                    className="w-full border border-gray-300 p-4 rounded-2xl mb-6 outline-none focus:border-black placeholder:text-gray-400"
                 />
 
                 <button

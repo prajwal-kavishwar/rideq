@@ -31,11 +31,7 @@ function Navbar() {
 
         localStorage.removeItem("driverOnlineStatus");
 
-        setToken(null);
-
-        setRole(null);
-
-        navigate("/");
+        window.location.href = "/";
     }
 
     const hideNavigation =

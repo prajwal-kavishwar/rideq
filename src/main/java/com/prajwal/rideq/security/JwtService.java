@@ -12,7 +12,11 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-    private final String SECRET_KEY = "rideq-secure-secret-key-for-jwt-signing-jbsckjbsdbckjbkjdcbvmsbsjdbvjhs";
+    private final String SECRET_KEY =
+            System.getenv().getOrDefault(
+                    "JWT_SECRET",
+                    "rideq-secure-secret-key-for-jwt-signing-jbsckjbsdbckjbkjdcbvmsbsjdbvjhs"
+            );
     private final SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     public String generateToken(String email){
         return Jwts.builder()
