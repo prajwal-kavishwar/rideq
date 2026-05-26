@@ -37,6 +37,7 @@ build/
 
 # Environment / Secrets
 .env
+application.yml
 application.yaml
 
 # OS files
