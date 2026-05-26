@@ -81,51 +81,63 @@ function Register() {
 
                 <input
                     type="text"
-                    placeholder="Enter name"
+                    placeholder="Example: Rahul Sharma"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full border p-3 rounded-lg mb-4"
+                    className="w-full border p-3 rounded-lg mb-4 placeholder:text-gray-400"
+                    required
                 />
 
                 <input
                     type="email"
-                    placeholder="Enter email"
+                    placeholder="Example: user@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border p-3 rounded-lg mb-4"
+                    className="w-full border p-3 rounded-lg mb-4 placeholder:text-gray-400"
+                    required
                 />
 
                 <input
                     type="text"
-                    placeholder="Enter phone number"
+                    placeholder="10-digit number (Example: 9876543210)"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full border p-3 rounded-lg mb-4"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                    title="Enter a valid 10-digit phone number"
+                    className="w-full border p-3 rounded-lg mb-4 placeholder:text-gray-400"
+                    required
                 />
 
                 <input
                     type="password"
-                    placeholder="Enter password"
+                    placeholder="Example: password123"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border p-3 rounded-lg mb-4"
+                    className="w-full border p-3 rounded-lg mb-4 placeholder:text-gray-400"
+                    required
                 />
 
                 {role === "DRIVER" && (
 
                     <input
                         type="text"
-                        placeholder="Enter vehicle number"
+                        placeholder="Vehicle No. Example: MH20AB0234"
                         value={vehicleNumber}
-                        onChange={(e) => setVehicleNumber(e.target.value)}
-                        className="w-full border p-3 rounded-lg mb-4"
+                        onChange={(e) =>
+                            setVehicleNumber(e.target.value.toUpperCase())
+                        }
+                        pattern="[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}"
+                        title="Format: MH20AB0234"
+                        className="w-full border p-3 rounded-lg mb-4 placeholder:text-gray-400 uppercase"
+                        required
                     />
 
                 )}
 
                 <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white p-3 rounded-lg"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition"
                 >
                     Register
                 </button>
