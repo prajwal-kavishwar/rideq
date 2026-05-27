@@ -44,14 +44,13 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
 
-
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth", "/api/auth/**").permitAll()
 
-                        .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/drivers/**").permitAll()
+                        .requestMatchers("/api/users", "/api/users/**").permitAll()
 
+                        .requestMatchers("/api/drivers", "/api/drivers/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
