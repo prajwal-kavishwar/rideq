@@ -68,9 +68,7 @@ public class SecurityConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
-                "https://rideq.vercel.app"
-        ));
+        config.setAllowedOriginPatterns(List.of("*"));
 
         config.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
@@ -78,7 +76,7 @@ public class SecurityConfig {
 
         config.setAllowedHeaders(List.of("*"));
 
-        config.setAllowCredentials(true);
+        config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
