@@ -1,215 +1,192 @@
-# 🚀 RideQ — Uber-like Ride Booking Backend System
+# RideQ — Full Stack Ride Booking Application
 
-Hi, if you are reading this is my UBER clone project RideQ created solely for experience.
----
+RideQ is a full stack ride booking application inspired by platforms like Uber.  
+I built this project to understand how ride booking systems actually work behind the scenes from authentication and ride requests to driver assignment, trip handling, and frontend-backend communication.
 
-## 🎯 Project Goal
-
-The goal of RideQ is to build a realistic backend system that handles the complete lifecycle of a ride, along with a simple frontend interface for interaction.
-
-It is designed as an internship-level project to demonstrate strong backend fundamentals and system design thinking.
+The idea was not just to create another booking UI, but to build the complete flow of a ride in a way that feels closer to a real system. Riders can book trips using live maps, drivers can manage ride requests, and the backend handles everything from authentication to ride state management and driver matching.
 
 ---
 
-## 🏁 Features
+# 🚀 Live Project
 
-### 🚗 Trip Lifecycle
+### Live Demo
+if you want to see Deployed end result click here
 
-```
-CREATED → ASSIGNED → ACCEPTED → STARTED → COMPLETED 
-CANCELED(Not applicable on state STARTED , COMPLETED)
-```
-
----
-
-### ⚙️ Backend Features
-
-* RESTful API design using Spring Boot
-* Clean layered architecture:
-
-    * Controller → Service → Repository
-* Event-driven driver assignment (`TripCreatedEvent`)
-* Distance-based driver matching
-* Retry logic for driver rejection
-* Driver accept/reject workflow
-* JWT-based authentication & authorization
-* Driver availability (online/offline) system
-* Basic concurrency safety handling
-
----
-
-### 🌐 Frontend Features
-Created a simple frontend to show working for the API in order to use it go to ->
-
-https://github.com/prajwal-kavishwar/rideq-frontend
+->      [RideQ Live Demo](https://rideq.vercel.app)
 
 
-* Multi-page UI (Login, User, Driver)
-* Role-based routing (USER / DRIVER)
-* Map integration using Leaflet.js
-* Pickup & drop selection via map(LocationIQ)
-* Trip creation and status tracking
-* Polling-based updates
-* Display of:
 
-    * Trip status
-    * Driver ID & User ID
-    * Pickup & Drop locations
-    * Distance & Fare
+# About The Project
+
+RideQ focuses on the actual workflow behind a ride booking platform.
+
+The project includes:
+
+- Secure authentication for riders and drivers
+- Role-based access control
+- Live map-based location selection
+- Trip lifecycle handling
+- Nearest driver assignment
+- Ride acceptance/rejection flow
+- Ride history tracking
+- Persistent data storage using PostgreSQL
+- Deployed frontend and backend services
+
+One of the main things I wanted to focus on was how different parts of the system connect together the frontend, APIs, authentication, database, ride logic, and driver workflows, instead of treating the project as isolated pages or endpoints.
 
 ---
 
-## 🧱 Project Structure
+# Features
 
-```
-rideq/
-├── backend/
-│   └── com.rideq
-│       ├── controller
-│       ├── service
-│       ├── repository
-│       ├── entity
-│       ├── dto
-│       ├── event
-│       ├── listener
-│       └── security
-│
-├── frontend/
-│   ├── login.html
-│   ├── user.html
-│   ├── driver.html
-│   ├── styles.css
-│   └── scripts.js
-```
+## 👤 Rider Features
 
----
+- Register and login securely
+- Book rides using interactive maps
+- Select pickup and drop locations
+- View ride history and trip details
+- Cancel rides before completion
+- Track trip status updates
 
-## ⚙️ Tech Stack
+## 🚗 Driver Features
 
-### Backend
+- Register as a driver
+- Set current location on the map
+- Go online/offline
+- Accept or reject ride requests
+- Start and complete trips
+- Manage active rides
 
-* Java 21
-* Spring Boot 3.x
-* Spring Security (JWT)
-* Spring Data JPA (Hibernate)
-* MySQL
-* Maven
+## ⚙️ Backend Features
 
-### Frontend
-
-* HTML
-* CSS
-* JavaScript
-* Leaflet.js
+- JWT-based authentication & authorization
+- Role-based protected APIs
+- Trip lifecycle management
+- Distance-based driver matching
+- Automatic reassignment when rides are rejected
+- RESTful API architecture
+- PostgreSQL database integration
+- Event-driven ride assignment flow
 
 ---
 
-## 🔄 How It Works
+# 🗺️ Maps & Location Handling
 
-1. User logs in and selects pickup & drop locations
-2. A trip is created via API
-3. `TripCreatedEvent` is triggered
-4. System finds nearest available driver
-5. Driver receives request and can accept/reject
-6. If rejected → next driver is assigned (retry logic)
-7. Once accepted → trip progresses through lifecycle
-8. Frontend polls backend for updates and displays status
+RideQ uses Leaflet.js with OpenStreetMap for location handling.
 
----
+Riders can select pickup and drop points directly from the map, while drivers can update their current location before accepting trips.
 
-## 🧠 Key Concepts Demonstrated
+The backend uses these coordinates to:
 
-* Backend system design
-* Event-driven architecture
-* REST API design
-* Authentication & security (JWT)
-* Separation of concerns
-* Retry and failure handling
-* Frontend-backend integration
-* Real-world system flow modeling
+- Calculate trip distance
+- Estimate fares
+- Find the nearest available drivers
 
 ---
 
+# 🛠️ Tech Stack
 
-## 🚀 Getting Started
+## Backend
 
-### 1. Clone Repository
+- Java 21
+- Spring Boot
+- Spring Security
+- JWT Authentication
+- Hibernate / JPA
+- PostgreSQL
+- Maven
+- Docker
 
-```
-fork repo and run in command prompt/terminal
+## Frontend
 
-git clone https://github.com/your-username/rideq.git
-cd rideq
+- React
+- React Router
+- Axios
+- Tailwind CSS
+- Leaflet.js
+- OpenStreetMap
+
+---
+
+# How RideQ Works
+
+```text
+User books a ride
+        ↓
+Trip gets created
+        ↓
+System searches for nearby available drivers
+        ↓
+Driver accepts or rejects the request
+        ↓
+If rejected, another driver is assigned
+        ↓
+Trip progresses through different stages
+        ↓
+Frontend keeps updating ride status
 ```
 
----
+Trip lifecycle:
 
-### 2. Backend Setup
-
-* Configure MySQL database
-* Copy application-example.yaml to application.yaml and update your credentials.
-
-```
-spring.datasource.url=jdbc:mysql://localhost:3306/rideq
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+```text
+CREATED → ASSIGNED → ACCEPTED → STARTED → COMPLETED
 ```
 
-Run the backend:
-
-```
-./mvnw spring-boot:run
-```
+Trips can also be cancelled before completion.
 
 ---
 
-### 3. Frontend Setup
+# 📸 Screenshots
 
-Simply open:
-
-```
-frontend/login.html
-```
-
-in your browser.
+## Home Page
+![home.png](screenShots/home.png)
 
 ---
 
-## 🔐 Authentication
-
-* JWT-based authentication
-* Separate roles:
-
-    * USER
-    * DRIVER
+## Login & Registration
+![loginAndRegistration.png](screenShots/loginAndRegistration.png)
 
 ---
 
-## 📌 Future Improvements 
+## Rider Dashboard
+![dashboardUser.png](screenShots/dashboardUser.png)
+---
 
-* React-based frontend
-* WebSocket for real-time updates
-* Microservices architecture
-* Advanced driver matching algorithm
+## Driver Dashboard
+![dashboardDriver.png](screenShots/dashboardDriver.png)
 
 ---
 
-## 📷 Screenshots 
-![Screenshot from 2026-03-23 00-56-12.png](screenShots/Screenshot%20from%202026-03-23%2000-56-12.png)
-![Screenshot from 2026-03-23 00-57-59.png](screenShots/Screenshot%20from%202026-03-23%2000-57-59.png)
-![Screenshot from 2026-03-23 00-59-41.png](screenShots/Screenshot%20from%202026-03-23%2000-59-41.png)
-![Screenshot from 2026-03-23 01-00-06.png](screenShots/Screenshot%20from%202026-03-23%2001-00-06.png)
-
+## Ride Booking & Map View
+![map.png](screenShots/map.png)
 
 ---
 
-## 🙌 Author
+## Rider Trip History 
+![RideHistory.png](screenShots/RideHistory.png)
+---
+## Active Trip Flow(Driver)
+![tripCycleDriver.png](screenShots/tripCycleDriver.png)
 
-**Prajwal Kavishwar**
+---
+
+# Future Improvements
+
+Some things I would like to add in the future:
+
+- WebSocket-based real-time updates
+- Live driver tracking
+- Payment integration
+- Notifications system
+- Better ride matching algorithms
+- Microservices architecture
+
+---
+
+# 👨‍💻 Author
+
+**Prajwal Kavishwar**  
 B.Tech Mathematics and Computing Engineering Student
 
 ---
 
-## ⭐ If you like this project
-
-Give it a star ⭐ on GitHub!
+If you found the project interesting, feel free to give it a ⭐ on GitHub.
